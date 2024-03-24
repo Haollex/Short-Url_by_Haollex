@@ -26,13 +26,20 @@ class Database():
         conn.close()
 
     @staticmethod
-    def save_url(short_path: str, original_path: str):
+    def save_url(short_url: str, original_url: str):
         conn = sqlite3.connect("urls.db")
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO urls (short_url, original_url) VALUES (?, ?)",
-                       (short_path, original_path))
-        conn.commit()
+        try:
+            cursor.execute("INSERT INTO urls (short_url, original_url) VALUES (?, ?)",
+                           (short_url, original_url))
+            conn.commit()
+        except sqlite3.IntegrityError:
+            cursor.execute("SELECT short_url FROM urls WHERE original_url = ?",
+                           (short_url,))
+            return cursor.fetchone()[0]
         conn.close()
+        return None
+
 
     @staticmethod
     def get_original_url(short_url: str):
